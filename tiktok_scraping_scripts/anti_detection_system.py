@@ -1,25 +1,19 @@
 
 from __future__ import annotations
 from typing import Optional, Dict, Any
-import random, json
+
+from tiktok_scraping_scripts.network.session_manager import (
+    get_random_user_agent,
+    get_proxy,
+)
 
 # Note: undetected_chromedriver is optional at import-time; used at runtime
-def _random_ua():
-    uas = [
-        # Sample modern desktop UAs (rotate/extend as you like)
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 13_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Safari/605.1.15",
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125 Safari/537.36",
-    ]
-    return random.choice(uas)
 
 def _apply_proxy(chrome_options, proxy: Optional[str] = None):
+    proxy = proxy or get_proxy()
     if not proxy:
         return
-    # proxy string examples:
-    #   host:port
-    #   user:pass@host:port  (for authenticated proxies, you may need an extension or CDP auth workaround)
-    chrome_options.add_argument(f"--proxy-server=http://{proxy}")
+    chrome_options.add_argument(f"--proxy-server={proxy}")
 
 def _apply_stealth_prefs(chrome_options):
     # Minimize automation flags
@@ -59,7 +53,7 @@ def create_driver(geo: str='US', headless: bool=True, proxy: Optional[str]=None,
     except Exception as e:
         raise RuntimeError("undetected_chromedriver not installed; cannot create driver") from e
 
-    ua = user_agent or _random_ua()
+    ua = user_agent or get_random_user_agent()
     opts = uc.ChromeOptions()
     _apply_stealth_prefs(opts)
     opts.add_argument(f"--user-agent={ua}")

@@ -4,7 +4,6 @@ Advanced TikTok Earnings Deep Dive Analyzer
 Comprehensive analysis with anti-detection measures and multiple data sources
 """
 
-import requests
 import json
 import time
 import random
@@ -16,39 +15,19 @@ import concurrent.futures
 import os
 import sys
 
+from tiktok_scraping_scripts.network.session_manager import (
+    create_session,
+    rotate_user_agent,
+)
+
 class AdvancedTikTokAnalyzer:
     def __init__(self):
-        self.session = requests.Session()
-        self.user_agents = [
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0",
-            "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1"
-        ]
-        self.setup_session()
+        self.session = create_session()
         self.proxy_list = []
         self.load_proxies()
-        
+
     def setup_session(self):
-        """Setup session with advanced stealth headers"""
-        self.session.headers.update({
-            'User-Agent': random.choice(self.user_agents),
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'DNT': '1',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Cache-Control': 'max-age=0',
-            'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
-            'Sec-Ch-Ua-Mobile': '?0',
-            'Sec-Ch-Ua-Platform': '"Windows"'
-        })
+        pass
     
     def load_proxies(self):
         """Load proxy list for rotation"""
@@ -69,7 +48,7 @@ class AdvancedTikTokAnalyzer:
             time.sleep(random.uniform(2, 5))
             
             # Rotate user agent
-            self.session.headers.update({'User-Agent': random.choice(self.user_agents)})
+            rotate_user_agent(self.session)
             
             # Use proxy if available
             proxy = self.get_random_proxy()

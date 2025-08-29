@@ -4,7 +4,6 @@ TikTok Earnings Deep Dive Analyzer
 Comprehensive analysis tool for TikTok account earnings and engagement metrics
 """
 
-import requests
 import json
 import time
 import random
@@ -24,36 +23,17 @@ import undetected_chromedriver as uc
 import os
 import sys
 
+from tiktok_scraping_scripts.network.session_manager import (
+    create_session,
+    rotate_user_agent,
+)
+
 class TikTokEarningsAnalyzer:
     def __init__(self):
-        self.session = requests.Session()
-        self.user_agents = [
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:121.0) Gecko/20100101 Firefox/121.0"
-        ]
-        self.setup_session()
+        self.session = create_session()
         self.earnings_data = {}
         self.engagement_data = {}
         self.video_data = []
-        
-    def setup_session(self):
-        """Setup session with stealth headers"""
-        self.session.headers.update({
-            'User-Agent': random.choice(self.user_agents),
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'DNT': '1',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Cache-Control': 'max-age=0'
-        })
     
     def get_random_delay(self):
         """Get random delay to avoid detection"""
@@ -227,9 +207,9 @@ class TikTokEarningsAnalyzer:
         for endpoint in api_endpoints:
             try:
                 time.sleep(self.get_random_delay())
-                
+
+                rotate_user_agent(self.session)
                 headers = {
-                    'User-Agent': random.choice(self.user_agents),
                     'Accept': 'application/json, text/plain, */*',
                     'Accept-Language': 'en-US,en;q=0.9',
                     'Referer': f'https://www.tiktok.com/@{username}',
@@ -238,7 +218,7 @@ class TikTokEarningsAnalyzer:
                     'Sec-Fetch-Mode': 'cors',
                     'Sec-Fetch-Site': 'same-origin'
                 }
-                
+
                 response = self.session.get(endpoint, headers=headers, timeout=10)
                 
                 if response.status_code == 200:
@@ -263,13 +243,13 @@ class TikTokEarningsAnalyzer:
         try:
             socialblade_url = f"https://socialblade.com/tiktok/user/{username}/monthly"
             
+            rotate_user_agent(self.session)
             headers = {
-                'User-Agent': random.choice(self.user_agents),
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.9',
                 'Referer': 'https://socialblade.com/'
             }
-            
+
             response = self.session.get(socialblade_url, headers=headers, timeout=15)
             
             if response.status_code == 200:
@@ -314,12 +294,12 @@ class TikTokEarningsAnalyzer:
         try:
             metrics_url = f"https://tiktokmetrics.com/@{username}"
             
+            rotate_user_agent(self.session)
             headers = {
-                'User-Agent': random.choice(self.user_agents),
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
                 'Accept-Language': 'en-US,en;q=0.9'
             }
-            
+
             response = self.session.get(metrics_url, headers=headers, timeout=15)
             
             if response.status_code == 200:

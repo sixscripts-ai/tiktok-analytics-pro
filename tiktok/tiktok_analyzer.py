@@ -1,30 +1,15 @@
-import requests
 import json
 import time
-import random
 from datetime import datetime
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 import re
 
+from tiktok_scraping_scripts.network.session_manager import create_session
+
 class TikTokEarningsAnalyzer:
     def __init__(self):
-        self.session = requests.Session()
-        self.user_agents = [
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        ]
-        self.setup_session()
-    
-    def setup_session(self):
-        self.session.headers.update({
-            'User-Agent': random.choice(self.user_agents),
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'DNT': '1',
-            'Connection': 'keep-alive'
-        })
+        self.session = create_session()
     
     def extract_username(self, url):
         try:

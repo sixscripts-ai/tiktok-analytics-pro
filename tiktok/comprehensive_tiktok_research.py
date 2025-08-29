@@ -4,7 +4,6 @@ Comprehensive TikTok Earnings Research Tool
 Multi-method analysis for accurate earnings estimation
 """
 
-import requests
 import json
 import time
 import random
@@ -15,31 +14,15 @@ from bs4 import BeautifulSoup
 import concurrent.futures
 import os
 
+from tiktok_scraping_scripts.network.session_manager import (
+    create_session,
+    rotate_user_agent,
+)
+
 class ComprehensiveTikTokResearch:
     def __init__(self):
-        self.session = requests.Session()
-        self.user_agents = [
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Mozilla/5.0 (iPhone; CPU iPhone OS 17_1_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1",
-            "Mozilla/5.0 (iPad; CPU OS 17_1_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.1 Mobile/15E148 Safari/604.1"
-        ]
-        self.setup_session()
+        self.session = create_session()
         self.research_data = {}
-        
-    def setup_session(self):
-        self.session.headers.update({
-            'User-Agent': random.choice(self.user_agents),
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'DNT': '1',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none'
-        })
     
     def extract_username(self, url):
         try:
@@ -52,7 +35,7 @@ class ComprehensiveTikTokResearch:
     
     def stealth_request(self, url, timeout=20):
         time.sleep(random.uniform(3, 6))
-        self.session.headers.update({'User-Agent': random.choice(self.user_agents)})
+        rotate_user_agent(self.session)
         try:
             return self.session.get(url, timeout=timeout)
         except Exception as e:

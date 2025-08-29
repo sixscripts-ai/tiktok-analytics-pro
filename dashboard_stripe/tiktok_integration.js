@@ -10,6 +10,9 @@ class TikTokIntegration {
     constructor() {
         this.scrapingIntegration = new TikTokDashboardIntegration(path.join(__dirname, '../tiktok_scraping_scripts'));
         this.isAvailable = false;
+        this.dataCache = new Map();
+        this.aiCache = new Map();
+        this.cacheTTL = 60 * 60 * 1000; // 1 hour
         this.checkAvailability();
     }
 
@@ -35,6 +38,11 @@ class TikTokIntegration {
             return this.getMockData(username);
         }
 
+        const cached = this.dataCache.get(username);
+        if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
+            return cached.data;
+        }
+
         try {
             console.log(`Scraping real data for @${username}...`);
             const data = await this.scrapingIntegration.getComprehensiveAnalysis(username);
@@ -58,6 +66,7 @@ class TikTokIntegration {
                 return this.getMockData(username);
             }
 
+            this.dataCache.set(username, { timestamp: Date.now(), data: formattedData });
             return formattedData;
         } catch (error) {
             console.error('Error getting real TikTok data:', error.message);
@@ -74,6 +83,9 @@ class TikTokIntegration {
         const videos = data.videos || [];
         const earnings = data.earnings || {};
         const engagement = data.engagement || {};
+        const postingWindows = data.posting_windows || [];
+        const hashtagLift = data.hashtag_lift || [];
+        const topSound = data.top_sound || '';
 
         // Calculate engagement rate from real data
         let engagementRate = 0;
@@ -121,6 +133,9 @@ class TikTokIntegration {
                 merch: earnings.merch || { low: 0, mid: 0, high: 0 }
             },
             engagement: engagement.overall || {},
+            postingWindows: postingWindows,
+            hashtagLift: hashtagLift,
+            topSound: topSound,
             timestamp: data.timestamp,
             isRealData: true
         };
@@ -173,14 +188,17 @@ class TikTokIntegration {
      */
     async getAIAnalysis(username) {
         const data = await this.getRealTikTokData(username);
-        
+        const key = JSON.stringify(data);
+        const cached = this.aiCache.get(key);
+        if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
+            return cached.result;
+        }
+
         // Generate AI insights based on real data
         const insights = this.generateAIInsights(data);
-        
-        return {
-            ...data,
-            aiInsights: insights
-        };
+        const result = { ...data, aiInsights: insights };
+        this.aiCache.set(key, { timestamp: Date.now(), result });
+        return result;
     }
 
     /**
@@ -190,19 +208,24 @@ class TikTokIntegration {
         const profile = data.profile;
         const analytics = data.analytics;
         const earnings = data.earnings;
+        const avgEngagement = data.engagement?.avg_engagement_rate || (analytics.engagementRate / 100);
+        const growthScore = profile.followers ? analytics.totalViews / profile.followers : analytics.totalViews;
+        const posting = data.postingWindows && data.postingWindows[0];
+        const hashtag = data.hashtagLift && data.hashtagLift[0];
+        const sound = data.topSound && (data.topSound.sound || data.topSound);
 
         const insights = {
             growth: {
-                status: profile.followers > 100000 ? 'Established' : profile.followers > 10000 ? 'Growing' : 'Emerging',
-                recommendation: profile.followers < 10000 ? 'Focus on content consistency and engagement' : 
-                               profile.followers < 100000 ? 'Optimize posting times and hashtag strategy' : 
-                               'Explore brand partnerships and monetization'
+                status: growthScore > 50 ? 'Established' : growthScore > 20 ? 'Growing' : 'Emerging',
+                recommendation: growthScore < 20 ? 'Increase posting frequency and cross-promotion' :
+                               growthScore < 50 ? 'Leverage best posting windows and strong hashtags' :
+                               'Expand collaborations and monetization'
             },
             engagement: {
-                status: analytics.engagementRate > 5 ? 'Excellent' : analytics.engagementRate > 3 ? 'Good' : 'Needs Improvement',
-                recommendation: analytics.engagementRate < 3 ? 'Increase interaction with followers and optimize content timing' :
-                               analytics.engagementRate < 5 ? 'Experiment with new content formats and trending sounds' :
-                               'Maintain high engagement with consistent quality content'
+                status: avgEngagement > 0.05 ? 'Excellent' : avgEngagement > 0.03 ? 'Good' : 'Needs Improvement',
+                recommendation: avgEngagement < 0.03 ? 'Interact more with audience and test formats' :
+                               avgEngagement < 0.05 ? 'Refine hashtag and sound choices' :
+                               'Maintain consistency with high-performing content'
             },
             monetization: {
                 monthlyPotential: Math.round(earnings.brandDeals.mid + earnings.creatorFund.mid + earnings.affiliate.mid + earnings.merch.mid),
@@ -211,9 +234,10 @@ class TikTokIntegration {
                                'Diversify revenue streams with merchandise and affiliate marketing'
             },
             content: {
-                optimalPosting: analytics.engagementRate > 3 ? 'Maintain current schedule' : 'Experiment with different posting times',
-                hashtagStrategy: profile.followers > 50000 ? 'Use trending hashtags strategically' : 'Focus on niche hashtags',
-                videoLength: analytics.avgViewsPerVideo > 10000 ? 'Current length works well' : 'Try shorter, more engaging content'
+                optimalPosting: posting ? `Post around ${posting.day} ${posting.time}` : 'Insufficient data',
+                hashtagStrategy: hashtag ? `Leverage #${hashtag.hashtag}` : 'Collect more hashtag data',
+                videoLength: analytics.avgViewsPerVideo > 10000 ? 'Current length works well' : 'Try shorter, more engaging content',
+                topSound: sound || 'No trending sound identified'
             }
         };
 

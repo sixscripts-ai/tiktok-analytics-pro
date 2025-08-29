@@ -1,7 +1,6 @@
 const OpenAI = require('openai');
-const { OpenAIEmbeddings } = require('@langchain/openai');
-const natural = require('natural');
-const nlp = require('compromise');
+const { spawn } = require('child_process');
+const path = require('path');
 require('dotenv').config();
 
 class TikTokAIAnalytics {
@@ -9,9 +8,6 @@ class TikTokAIAnalytics {
         this.openai = new OpenAI({
             apiKey: process.env.OPENAI_API_KEY
         });
-        
-        this.tokenizer = new natural.WordTokenizer();
-        this.tfidf = new natural.TfIdf();
     }
 
     async analyzeCreatorData(tiktokData) {
@@ -48,8 +44,8 @@ class TikTokAIAnalytics {
     async predictRevenue(creatorData) {
         try {
             const prompt = this.buildRevenuePrompt(creatorData);
-            
-            const response = await this.openai.chat.completions.create({
+
+            const aiResponsePromise = this.openai.chat.completions.create({
                 model: "gpt-4",
                 messages: [
                     {
@@ -65,7 +61,14 @@ class TikTokAIAnalytics {
                 temperature: 0.5
             });
 
-            return this.parseRevenueResponse(response.choices[0].message.content);
+            const [aiResponse, mlEstimate] = await Promise.all([
+                aiResponsePromise,
+                this.mlPredictRevenue(creatorData).catch(() => null)
+            ]);
+
+            const parsed = this.parseRevenueResponse(aiResponse.choices[0].message.content);
+            if (mlEstimate !== null) parsed.mlEstimate = mlEstimate;
+            return parsed;
         } catch (error) {
             console.error('Revenue Prediction Error:', error);
             return {
@@ -75,6 +78,27 @@ class TikTokAIAnalytics {
                 error: error.message
             };
         }
+    }
+
+    mlPredictRevenue(creatorData) {
+        return new Promise((resolve, reject) => {
+            const py = spawn('python', [path.join(__dirname, '../ml/revenue_model.py')]);
+            let stdout = '';
+            let stderr = '';
+            py.stdout.on('data', d => stdout += d.toString());
+            py.stderr.on('data', d => stderr += d.toString());
+            py.on('close', code => {
+                if (code !== 0) return reject(new Error(stderr));
+                try {
+                    const res = JSON.parse(stdout);
+                    resolve(res.prediction);
+                } catch (e) {
+                    reject(e);
+                }
+            });
+            py.stdin.write(JSON.stringify(creatorData));
+            py.stdin.end();
+        });
     }
 
     async generateContentRecommendations(creatorData) {
@@ -154,6 +178,9 @@ class TikTokAIAnalytics {
         - Video Count: ${tiktokData.videoCount || 'N/A'}
         - Engagement Rate: ${tiktokData.engagementRate || 'N/A'}%
         - Bio: ${tiktokData.bio || 'N/A'}
+        - Optimal Posting Windows: ${JSON.stringify(tiktokData.postingWindows?.slice(0,3) || [])}
+        - Hashtag Performance: ${JSON.stringify(tiktokData.hashtagLift?.slice(0,5) || [])}
+        - Top Sound: ${tiktokData.topSound || 'N/A'}
 
         RECENT VIDEOS:
         ${JSON.stringify(tiktokData.recentVideos || [], null, 2)}

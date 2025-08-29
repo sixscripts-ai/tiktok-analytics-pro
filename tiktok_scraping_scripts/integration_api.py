@@ -176,7 +176,7 @@ class TikTokIntegrationAPI:
             video_data = self.scrape_video_data(username)
             earnings_data = self.get_earnings_analysis(username)
             engagement_data = self.get_engagement_analysis(username)
-            
+
             return {
                 "username": username,
                 "timestamp": datetime.now().isoformat(),
@@ -184,6 +184,9 @@ class TikTokIntegrationAPI:
                 "videos": video_data.get("videos", []),
                 "earnings": earnings_data.get("models", {}),
                 "engagement": engagement_data.get("engagement", {}),
+                "posting_windows": engagement_data.get("posting_windows", []),
+                "hashtag_lift": engagement_data.get("hashtag_lift", []),
+                "top_sound": engagement_data.get("top_sound"),
                 "errors": [
                     data.get("error") for data in [profile_data, video_data, earnings_data, engagement_data]
                     if data.get("error")

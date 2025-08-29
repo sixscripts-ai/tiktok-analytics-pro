@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 
 from scrapers.utils_loader import load_videos_any
+from config import settings
 
 def sound_lifespan(sound_id: Optional[str] = None, username: Optional[str] = None, videos_file: Optional[str] = None) -> Dict[str, Any]:
     """Analyze sound/music lifespan and popularity trends."""

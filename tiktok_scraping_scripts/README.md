@@ -106,6 +106,13 @@ STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
 STRIPE_SECRET_KEY=sk_test_your_key_here
 ```
 
+### Default Configuration
+All scripts load settings via `config.py`, which uses `pydantic.BaseSettings` to read values from the environment or a `.env` file. Supported keys include:
+
+- `PROXY_LIST` – comma-separated HTTP proxies.
+- `POSTGRES_URL`, `MONGO_URL`, `REDIS_URL` – database connection strings.
+- `CAPTCHA_API_KEY` – credentials for CAPTCHA solving.
+
 ### Proxy Setup
 Add your proxy list to the configuration:
 

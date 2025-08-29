@@ -2,6 +2,8 @@
 from __future__ import annotations
 from dataclasses import dataclass, asdict
 from typing import List, Optional, Dict, Any, Callable
+
+from tiktok_scraping_scripts.core.driver_manager import get_driver
 import time, random, re, json
 
 try:
@@ -85,13 +87,23 @@ def _try_many(driver, selectors, timeout=10):
     if last: raise last
     raise TimeoutException("element not found")  # type: ignore
 
-def scrape_profile(username: str, driver=None, driver_factory: Optional[Callable[[], Any]] = None) -> Dict[str, Any]:
+def scrape_profile(
+    username: str,
+    driver=None,
+    driver_factory: Optional[Callable[[], Any]] = None,
+    *,
+    headless: bool | None = None,
+    timeout: int | None = None,
+    proxy: Optional[str] = None,
+    use_stealth: bool | None = None,
+) -> Dict[str, Any]:
     if driver is None and driver_factory is None:
-        try:
-            import undetected_chromedriver as uc
-            driver = uc.Chrome(options=uc.ChromeOptions())
-        except Exception as e:
-            raise RuntimeError("No driver available; pass a Selenium driver or driver_factory.") from e
+        driver = get_driver(
+            headless=headless,
+            timeout=timeout,
+            proxy=proxy,
+            use_stealth=use_stealth,
+        )
     elif driver is None:
         driver = driver_factory()
 

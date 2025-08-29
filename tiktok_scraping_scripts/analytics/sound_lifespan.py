@@ -5,11 +5,18 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 
 from scrapers.utils_loader import load_videos_any
+try:
+    from ..models import Video
+except ImportError:  # pragma: no cover
+    from models import Video
 
-def sound_lifespan(sound_id: Optional[str] = None, username: Optional[str] = None, videos_file: Optional[str] = None) -> Dict[str, Any]:
+def sound_lifespan(sound_id: Optional[str] = None, username: Optional[str] = None, videos: Optional[List[Video]] = None, videos_file: Optional[str] = None) -> Dict[str, Any]:
     """Analyze sound/music lifespan and popularity trends."""
     
-    videos = load_videos_any(videos_file) if videos_file else []
+    videos = videos or []
+    if not videos and videos_file:
+        videos = [Video.parse_obj(v) if not isinstance(v, Video) else v for v in load_videos_any(videos_file)]
+    videos = [v.dict() if isinstance(v, Video) else v for v in videos]
     
     if not videos:
         return {

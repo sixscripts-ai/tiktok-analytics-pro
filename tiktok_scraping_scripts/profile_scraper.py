@@ -1,6 +1,5 @@
 
 from __future__ import annotations
-from dataclasses import dataclass, asdict
 from typing import List, Optional, Dict, Any, Callable
 import time, random, re, json
 
@@ -44,18 +43,10 @@ def _get_attr(el, name):
     except Exception:
         return None
 
-@dataclass
-class Profile:
-    username: str
-    display_name: Optional[str] = None
-    bio: Optional[str] = None
-    follower_count: Optional[int] = None
-    following_count: Optional[int] = None
-    total_likes: Optional[int] = None
-    video_count: Optional[int] = None
-    verified: Optional[bool] = None
-    profile_url: Optional[str] = None
-    created_at: Optional[str] = None  # TikTok doesn't expose this on web; kept for schema parity
+try:
+    from .models import Profile
+except ImportError:  # pragma: no cover
+    from models import Profile
 
 # --- Core ---
 
@@ -85,7 +76,7 @@ def _try_many(driver, selectors, timeout=10):
     if last: raise last
     raise TimeoutException("element not found")  # type: ignore
 
-def scrape_profile(username: str, driver=None, driver_factory: Optional[Callable[[], Any]] = None) -> Dict[str, Any]:
+def scrape_profile(username: str, driver=None, driver_factory: Optional[Callable[[], Any]] = None) -> Profile:
     if driver is None and driver_factory is None:
         try:
             import undetected_chromedriver as uc
@@ -172,10 +163,10 @@ def scrape_profile(username: str, driver=None, driver_factory: Optional[Callable
         profile_url=url,
         created_at=None,
     )
-    return {"profile": asdict(prof)}
+    return prof
 
-def run(usernames: List[str], driver_factory: Optional[Callable[[], Any]] = None) -> List[Dict[str, Any]]:
-    out = []
+def run(usernames: List[str], driver_factory: Optional[Callable[[], Any]] = None) -> List[Profile]:
+    out: List[Profile] = []
     driver = None
     if driver_factory is None:
         try:

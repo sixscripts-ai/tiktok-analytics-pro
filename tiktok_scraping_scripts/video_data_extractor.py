@@ -1,10 +1,13 @@
 
 from __future__ import annotations
-from dataclasses import dataclass, asdict
-from typing import List, Optional, Dict, Any, Callable
+from typing import List, Optional, Callable
 import time, random, json
+from pathlib import Path
 
-from scrapers.utils_loader import load_videos_any
+try:
+    from .models import Video
+except ImportError:  # pragma: no cover
+    from models import Video
 
 try:
     from selenium.webdriver.common.by import By
@@ -14,19 +17,7 @@ try:
 except Exception:
     By = WebDriverWait = EC = TimeoutException = WebDriverException = None
 
-@dataclass
-class VideoRow:
-    url: str
-    video_id: str|None = None
-    create_time: str|None = None
-    views: int|None = None
-    likes: int|None = None
-    comments: int|None = None
-    shares: int|None = None
-    duration: float|None = None
-    hashtags: List[str]|None = None
-    music: Dict[str, Any]|None = None
-    caption: str|None = None
+ # Video model imported from models
 
 def _parse_overlay_count(text: str|None) -> Optional[int]:
     if not text: return None
@@ -63,8 +54,8 @@ def _scroll_grid(driver, max_items: int = 100, max_secs: int = 25):
             break
         last_h = h
 
-def _collect_from_grid(driver, limit: int = 200) -> List[VideoRow]:
-    out: List[VideoRow] = []
+def _collect_from_grid(driver, limit: int = 200) -> List[Video]:
+    out: List[Video] = []
     
     # Try multiple selectors for video links
     selectors = [
@@ -113,7 +104,7 @@ def _collect_from_grid(driver, limit: int = 200) -> List[VideoRow]:
                     continue
             
             views = _parse_overlay_count(overlay)
-            out.append(VideoRow(url=href, views=views))
+            out.append(Video(url=href, views=views))
             
         except Exception as e:
             print(f"Error processing video link: {e}")
@@ -121,7 +112,7 @@ def _collect_from_grid(driver, limit: int = 200) -> List[VideoRow]:
     
     return out
 
-def _hydrate_video_meta(driver, row: VideoRow, per_video_timeout: int = 15) -> VideoRow:
+def _hydrate_video_meta(driver, row: Video, per_video_timeout: int = 15) -> Video:
     if not row.url:
         return row
     driver.get(row.url)
@@ -264,7 +255,7 @@ def _hydrate_video_meta(driver, row: VideoRow, per_video_timeout: int = 15) -> V
     return row
 
 def run(username: str, limit: int = 200, incremental: bool = True, include_comments: bool = False,
-        driver=None, driver_factory: Optional[Callable[[], Any]] = None, out: Optional[str]=None) -> List[Dict[str, Any]]:
+        driver=None, driver_factory: Optional[Callable[[], Any]] = None, out: Optional[str]=None) -> List[Video]:
     if driver is None and driver_factory is None:
         try:
             import undetected_chromedriver as uc
@@ -278,18 +269,18 @@ def run(username: str, limit: int = 200, incremental: bool = True, include_comme
         _open_profile(driver, username)
         _scroll_grid(driver, max_items=limit, max_secs=30)
         rows = _collect_from_grid(driver, limit=limit)
-        results: List[Dict[str, Any]] = []
+        results: List[Video] = []
         
         # Only hydrate if we found videos
         if rows:
             for r in rows:
                 try:
                     hydrated = _hydrate_video_meta(driver, r)
-                    results.append(asdict(hydrated))
+                    results.append(hydrated)
                     time.sleep(random.uniform(0.5, 1.0))
                 except Exception:
                     # Add basic video data even if hydration fails
-                    results.append(asdict(r))
+                    results.append(r)
         else:
             pass
             
@@ -305,15 +296,15 @@ def run(username: str, limit: int = 200, incremental: bool = True, include_comme
         # optional: enrich with comments using our comments scraper
         try:
             from tiktok_scraping_scripts.scrapers.comments_scraper import scrape_comments
-            comm = scrape_comments(username, video_urls=[r['url'] for r in results], limit_per_video=100, driver_factory=driver_factory)
+            comm = scrape_comments(username, video_urls=[r.url for r in results], limit_per_video=100, driver_factory=driver_factory)
             # attach comment counts if missing
             by_vid = {}
             for c in comm.get('comments', []):
                 by_vid.setdefault(c['video_id'], 0)
                 by_vid[c['video_id']] += 1
             for r in results:
-                if r.get('comments') is None and r.get('url') in by_vid:
-                    r['comments'] = by_vid[r['url']]
+                if r.comments is None and r.url in by_vid:
+                    r.comments = by_vid[r.url]
         except Exception:
             pass
 
@@ -322,9 +313,9 @@ def run(username: str, limit: int = 200, incremental: bool = True, include_comme
         if p.suffix.lower() == '.jsonl':
             with p.open('w', encoding='utf-8') as f:
                 for row in results:
-                    f.write(json.dumps(row, ensure_ascii=False) + "\n")
+                    f.write(json.dumps(row.dict(), ensure_ascii=False) + "\n")
         else:
-            p.write_text(json.dumps(results, indent=2, ensure_ascii=False), encoding='utf-8')
+            p.write_text(json.dumps([r.dict() for r in results], indent=2, ensure_ascii=False), encoding='utf-8')
     return results
 
 if __name__ == '__main__':

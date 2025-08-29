@@ -7,7 +7,6 @@ Provides endpoints for the dashboard to trigger scraping and get real data
 import json
 import os
 import sys
-import tempfile
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from datetime import datetime
@@ -20,7 +19,6 @@ from video_data_extractor import run as extract_videos
 from earnings_calculator import run as calculate_earnings
 from engagement_analyzer import run as analyze_engagement
 from driver_loader import discover_driver_factory
-from data.storage import Storage
 
 class TikTokIntegrationAPI:
     """API for integrating TikTok scraping with the dashboard"""

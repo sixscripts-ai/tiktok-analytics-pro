@@ -5,6 +5,8 @@ import time, random, re
 from dataclasses import dataclass
 
 from scrapers.utils_loader import load_videos_any
+from driver_loader import discover_driver_factory
+from config import settings
 
 try:
     from selenium.webdriver.common.by import By
@@ -135,13 +137,8 @@ def scrape_comments(
     max_retries: int = 3,
 ) -> Dict[str, Any]:
 
-    if driver is None and driver_factory is None:
-        try:
-            import undetected_chromedriver as uc
-            driver = uc.Chrome(options=uc.ChromeOptions())
-        except Exception as e:
-            raise RuntimeError("No driver provided and cannot create a local driver. Pass a Selenium WebDriver or a driver_factory.") from e
-    elif driver is None:
+    driver_factory = driver_factory or discover_driver_factory()
+    if driver is None:
         driver = driver_factory()
 
     if not video_urls and videos_file:

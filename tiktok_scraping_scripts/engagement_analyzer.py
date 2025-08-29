@@ -8,6 +8,7 @@ from scrapers.utils_loader import load_videos_any, canon_hashtag
 from analytics.posting_time_optimizer import posting_time_optimizer
 from analytics.hashtag_efficacy import hashtag_efficacy
 from analytics.sound_lifespan import sound_lifespan
+from config import settings
 
 def _engagement_rate(v: dict) -> float:
     views = float(v.get('views') or v.get('play_count') or 0)

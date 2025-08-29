@@ -2,6 +2,8 @@
 import os, importlib
 from pathlib import Path
 
+from config import settings
+
 def _load_from_spec(spec: str):
     mod, func = spec.split(":")
     return getattr(importlib.import_module(mod), func)
@@ -35,13 +37,23 @@ def discover_driver_factory():
     # 3) Fallback to built-in anti-detection system
     try:
         import anti_detection_system as ads
-        return getattr(ads, "create_driver")
+        default_proxy = settings.proxy_list[0] if settings.proxy_list else None
+        return lambda **kw: ads.create_driver(proxy=default_proxy, **kw)
     except Exception as e:
         print(f"Failed to import anti_detection_system: {e}")
         # Last resort: local undetected-chromedriver (dev convenience)
         try:
             import undetected_chromedriver as uc
-            return lambda **kw: uc.Chrome(options=uc.ChromeOptions())
+
+            def _local_driver(**kw):
+                opts = uc.ChromeOptions()
+                if settings.proxy_list:
+                    opts.add_argument(f"--proxy-server=http://{settings.proxy_list[0]}")
+                return uc.Chrome(options=opts)
+
+            return _local_driver
         except Exception as e2:
-            raise RuntimeError("No driver factory available. Set TIKTOK_DRIVER_FACTORY or provide config.toml, "
-                               "or ensure anti_detection_system.create_driver exists.") from e2
+            raise RuntimeError(
+                "No driver factory available. Set TIKTOK_DRIVER_FACTORY or provide config.toml, "
+                "or ensure anti_detection_system.create_driver exists."
+            ) from e2

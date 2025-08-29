@@ -5,6 +5,8 @@ from typing import List, Optional, Dict, Any, Callable
 import time, random, json
 
 from scrapers.utils_loader import load_videos_any
+from driver_loader import discover_driver_factory
+from config import settings
 
 try:
     from selenium.webdriver.common.by import By
@@ -265,13 +267,8 @@ def _hydrate_video_meta(driver, row: VideoRow, per_video_timeout: int = 15) -> V
 
 def run(username: str, limit: int = 200, incremental: bool = True, include_comments: bool = False,
         driver=None, driver_factory: Optional[Callable[[], Any]] = None, out: Optional[str]=None) -> List[Dict[str, Any]]:
-    if driver is None and driver_factory is None:
-        try:
-            import undetected_chromedriver as uc
-            driver = uc.Chrome(options=uc.ChromeOptions())
-        except Exception as e:
-            raise RuntimeError("No driver available; pass a Selenium driver or driver_factory.") from e
-    elif driver is None:
+    driver_factory = driver_factory or discover_driver_factory()
+    if driver is None:
         driver = driver_factory()
 
     try:

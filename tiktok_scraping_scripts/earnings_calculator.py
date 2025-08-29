@@ -5,6 +5,7 @@ import json, statistics as stats
 from pathlib import Path
 
 from scrapers.utils_loader import load_videos_any
+from config import settings
 
 DEFAULTS = {
     'brand_cpm_per_view': (0.02, 0.04, 0.08),      # $ per view equivalent via brand deals

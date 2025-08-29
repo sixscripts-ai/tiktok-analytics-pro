@@ -7,6 +7,7 @@ Provides endpoints for the dashboard to trigger scraping and get real data
 import json
 import os
 import sys
+import tempfile
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from datetime import datetime
@@ -19,6 +20,7 @@ from video_data_extractor import run as extract_videos
 from earnings_calculator import run as calculate_earnings
 from engagement_analyzer import run as analyze_engagement
 from driver_loader import discover_driver_factory
+from data.storage import Storage
 
 class TikTokIntegrationAPI:
     """API for integrating TikTok scraping with the dashboard"""
@@ -26,6 +28,7 @@ class TikTokIntegrationAPI:
     def __init__(self, data_dir: str = "scraped_data"):
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(exist_ok=True)
+        self.storage = Storage(str(self.data_dir / "cache.db"))
         
     def scrape_profile_data(self, username: str) -> Dict[str, Any]:
         """Scrape profile data for a given username"""
@@ -34,17 +37,10 @@ class TikTokIntegrationAPI:
             username = username.strip().replace('@', '')
             
             # Check if we have recent data (within 1 hour)
-            profile_file = self.data_dir / f"{username}_profile.json"
-            if profile_file.exists():
-                stat = profile_file.stat()
-                if (datetime.now().timestamp() - stat.st_mtime) < 3600:  # 1 hour
-                    try:
-                        with open(profile_file, 'r') as f:
-                            cached_data = json.load(f)
-                            if cached_data and not cached_data.get("error"):
-                                return cached_data
-                    except Exception:
-                        pass
+            cached = self.storage.get_profile(username)
+            if cached and (datetime.now() - cached.updated_at).total_seconds() < 3600:
+                if cached.data and not cached.data.get("error"):
+                    return cached.data
             
             # Scrape new data
             driver_factory = discover_driver_factory()
@@ -54,11 +50,9 @@ class TikTokIntegrationAPI:
             if not result or not result.get("profile"):
                 raise Exception("No profile data returned from scraper")
             
-            # Save to file
+            # Save to storage
             try:
-                with open(profile_file, 'w') as f:
-                    json.dump(result, f, indent=2, default=str)
-                pass
+                self.storage.set_profile(username, result)
             except Exception:
                 pass
             
@@ -79,17 +73,10 @@ class TikTokIntegrationAPI:
             username = username.strip().replace('@', '')
             
             # Check for recent data
-            videos_file = self.data_dir / f"{username}_videos.json"
-            if videos_file.exists():
-                stat = videos_file.stat()
-                if (datetime.now().timestamp() - stat.st_mtime) < 3600:  # 1 hour
-                    try:
-                        with open(videos_file, 'r') as f:
-                            cached_videos = json.load(f)
-                            if isinstance(cached_videos, list) and len(cached_videos) > 0:
-                                return {"videos": cached_videos}
-                    except Exception:
-                        pass
+            cached = self.storage.get_videos(username)
+            if cached and (datetime.now() - cached.updated_at).total_seconds() < 3600:
+                if isinstance(cached.data, list) and len(cached.data) > 0:
+                    return {"videos": cached.data}
             
             # Scrape new data
             driver_factory = discover_driver_factory()
@@ -99,11 +86,9 @@ class TikTokIntegrationAPI:
             if not isinstance(videos, list):
                 raise Exception("Invalid video data format returned")
             
-            # Save to file
+            # Save to storage
             try:
-                with open(videos_file, 'w') as f:
-                    json.dump(videos, f, indent=2, default=str)
-                pass
+                self.storage.set_videos(username, videos)
             except Exception:
                 pass
             
@@ -124,15 +109,20 @@ class TikTokIntegrationAPI:
             username = username.strip().replace('@', '')
             
             # Get video data
-            videos_file = self.data_dir / f"{username}_videos.json"
-            if not videos_file.exists():
-                # Scrape videos first
+            cached = self.storage.get_videos(username)
+            if not cached:
                 video_result = self.scrape_video_data(username)
                 if "error" in video_result:
                     return video_result
-            
-            # Calculate earnings
-            result = calculate_earnings(username, videos_file=str(videos_file))
+                cached = self.storage.get_videos(username)
+
+            with tempfile.NamedTemporaryFile("w+", suffix=".json", delete=False) as tmp:
+                json.dump(cached.data, tmp, indent=2, default=str)
+                tmp_path = tmp.name
+            try:
+                result = calculate_earnings(username, videos_file=tmp_path)
+            finally:
+                os.unlink(tmp_path)
             return result
             
         except Exception as e:
@@ -148,15 +138,20 @@ class TikTokIntegrationAPI:
             username = username.strip().replace('@', '')
             
             # Get video data
-            videos_file = self.data_dir / f"{username}_videos.json"
-            if not videos_file.exists():
-                # Scrape videos first
+            cached = self.storage.get_videos(username)
+            if not cached:
                 video_result = self.scrape_video_data(username)
                 if "error" in video_result:
                     return video_result
-            
-            # Analyze engagement
-            result = analyze_engagement(username, videos_file=str(videos_file))
+                cached = self.storage.get_videos(username)
+
+            with tempfile.NamedTemporaryFile("w+", suffix=".json", delete=False) as tmp:
+                json.dump(cached.data, tmp, indent=2, default=str)
+                tmp_path = tmp.name
+            try:
+                result = analyze_engagement(username, videos_file=tmp_path)
+            finally:
+                os.unlink(tmp_path)
             return result
             
         except Exception as e:

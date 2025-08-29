@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timedelta
 from collections import defaultdict
 
-from scrapers.utils_loader import load_videos_any
+from tiktok_pipeline.scrapers.utils_loader import load_videos_any
 
 def posting_time_optimizer(username: str, tz: str = 'UTC', window_days: int = 60, videos_file: Optional[str] = None) -> Dict[str, Any]:
     """Analyze optimal posting times based on video performance."""

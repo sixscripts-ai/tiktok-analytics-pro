@@ -3,7 +3,7 @@ from typing import Dict, Any, List, Optional
 import json
 from collections import defaultdict
 
-from scrapers.utils_loader import load_videos_any, canon_hashtag
+from tiktok_pipeline.scrapers.utils_loader import load_videos_any, canon_hashtag
 
 def hashtag_efficacy(username: str, min_uses: int = 5, videos_file: Optional[str] = None) -> Dict[str, Any]:
     """Analyze hashtag performance and effectiveness."""

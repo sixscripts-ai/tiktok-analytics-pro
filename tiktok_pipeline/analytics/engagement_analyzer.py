@@ -4,10 +4,10 @@ from typing import Dict, Any, Optional, List
 import json
 from statistics import mean
 
-from scrapers.utils_loader import load_videos_any, canon_hashtag
-from analytics.posting_time_optimizer import posting_time_optimizer
-from analytics.hashtag_efficacy import hashtag_efficacy
-from analytics.sound_lifespan import sound_lifespan
+from tiktok_pipeline.scrapers.utils_loader import load_videos_any, canon_hashtag
+from tiktok_pipeline.analytics.posting_time_optimizer import posting_time_optimizer
+from tiktok_pipeline.analytics.hashtag_efficacy import hashtag_efficacy
+from tiktok_pipeline.analytics.sound_lifespan import sound_lifespan
 
 def _engagement_rate(v: dict) -> float:
     views = float(v.get('views') or v.get('play_count') or 0)

@@ -16,7 +16,7 @@ def discover_driver_factory():
             raise RuntimeError(f"Failed to load driver factory from TIKTOK_DRIVER_FACTORY={spec}: {e}")
 
     # 2) Config TOML (repo / cwd / home)
-    for cfg in (Path.cwd()/ "tiktok_scraping_scripts"/"config.toml",
+    for cfg in (Path.cwd()/ "tiktok_pipeline"/"config.toml",
                 Path.cwd()/ "config.toml",
                 Path.home()/ ".tiktokctl.toml"):
         if cfg.exists():
@@ -34,7 +34,7 @@ def discover_driver_factory():
 
     # 3) Fallback to built-in anti-detection system
     try:
-        import anti_detection_system as ads
+        from tiktok_pipeline.scrapers import anti_detection_system as ads
         return getattr(ads, "create_driver")
     except Exception as e:
         print(f"Failed to import anti_detection_system: {e}")

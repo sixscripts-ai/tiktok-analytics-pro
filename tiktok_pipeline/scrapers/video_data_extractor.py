@@ -4,7 +4,7 @@ from dataclasses import dataclass, asdict
 from typing import List, Optional, Dict, Any, Callable
 import time, random, json
 
-from scrapers.utils_loader import load_videos_any
+from tiktok_pipeline.scrapers.utils_loader import load_videos_any
 
 try:
     from selenium.webdriver.common.by import By
@@ -304,7 +304,7 @@ def run(username: str, limit: int = 200, incremental: bool = True, include_comme
     if include_comments:
         # optional: enrich with comments using our comments scraper
         try:
-            from tiktok_scraping_scripts.scrapers.comments_scraper import scrape_comments
+            from tiktok_pipeline.scrapers.comments_scraper import scrape_comments
             comm = scrape_comments(username, video_urls=[r['url'] for r in results], limit_per_video=100, driver_factory=driver_factory)
             # attach comment counts if missing
             by_vid = {}

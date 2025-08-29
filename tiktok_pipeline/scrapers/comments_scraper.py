@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Callable, Optional
 import time, random, re
 from dataclasses import dataclass
 
-from scrapers.utils_loader import load_videos_any
+from tiktok_pipeline.scrapers.utils_loader import load_videos_any
 
 try:
     from selenium.webdriver.common.by import By

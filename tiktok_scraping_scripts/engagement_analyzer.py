@@ -8,6 +8,10 @@ from scrapers.utils_loader import load_videos_any, canon_hashtag
 from analytics.posting_time_optimizer import posting_time_optimizer
 from analytics.hashtag_efficacy import hashtag_efficacy
 from analytics.sound_lifespan import sound_lifespan
+try:
+    from .models import Video
+except ImportError:  # pragma: no cover
+    from models import Video
 
 def _engagement_rate(v: dict) -> float:
     views = float(v.get('views') or v.get('play_count') or 0)
@@ -46,12 +50,15 @@ def summarize_engagement(videos: List[dict]) -> Dict[str, Any]:
     top_videos = sorted(videos, key=lambda v: _engagement_rate(v), reverse=True)[:10]
     return {'overall': overall, 'by_hashtag': by_hashtag[:50], 'top_videos': top_videos}
 
-def run(username: str, videos_file: Optional[str]=None, tz: str='UTC', window_days: int=60) -> Dict[str, Any]:
-    vids = load_videos_any(videos_file) if videos_file else []
-    summary = summarize_engagement(vids)
-    pto = posting_time_optimizer(username, tz=tz, window_days=window_days, videos_file=videos_file)
-    he = hashtag_efficacy(username, videos_file=videos_file)
-    sl = sound_lifespan(username=username, videos_file=videos_file)
+def run(username: str, videos_file: Optional[str]=None, tz: str='UTC', window_days: int=60, videos: Optional[List[Video]] = None) -> Dict[str, Any]:
+    videos = videos or []
+    if not videos and videos_file:
+        videos = [Video.parse_obj(v) if not isinstance(v, Video) else v for v in load_videos_any(videos_file)]
+    vids_dict = [v.dict() if isinstance(v, Video) else v for v in videos]
+    summary = summarize_engagement(vids_dict)
+    pto = posting_time_optimizer(username, tz=tz, window_days=window_days, videos=videos, videos_file=videos_file)
+    he = hashtag_efficacy(username, videos=videos, videos_file=videos_file)
+    sl = sound_lifespan(username=username, videos=videos, videos_file=videos_file)
     return {
         'username': username,
         'engagement': summary,

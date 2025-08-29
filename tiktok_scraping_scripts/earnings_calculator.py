@@ -5,6 +5,10 @@ import json, statistics as stats
 from pathlib import Path
 
 from scrapers.utils_loader import load_videos_any
+try:
+    from .models import Video
+except ImportError:  # pragma: no cover
+    from models import Video
 
 DEFAULTS = {
     'brand_cpm_per_view': (0.02, 0.04, 0.08),      # $ per view equivalent via brand deals
@@ -64,18 +68,20 @@ def merch_estimate(videos: List[dict], params=DEFAULTS) -> Dict[str, Any]:
     high= engaged * (conv[2]/100.0) * aov[2] * margin[2]
     return {'low': round(low,2), 'mid': round(mid,2), 'high': round(high,2)}
 
-def run(username: str, profile_file: Optional[str]=None, videos_file: Optional[str]=None, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def run(username: str, profile_file: Optional[str]=None, videos_file: Optional[str]=None, videos: Optional[List[Video]] = None, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     params = params or DEFAULTS
-    videos = load_videos_any(videos_file) if videos_file else []
-    # Base outputs
+    videos = videos or []
+    if not videos and videos_file:
+        videos = [Video.parse_obj(v) if not isinstance(v, Video) else v for v in load_videos_any(videos_file)]
+    vids_dict = [v.dict() if isinstance(v, Video) else v for v in videos]
     out = {
         'username': username,
         'assumptions': params,
         'models': {
-            'brand_deals': brand_deal_estimate(videos, params),
-            'creator_fund': creator_fund_estimate(videos, params),
-            'affiliate': affiliate_estimate(videos, params),
-            'merch': merch_estimate(videos, params),
+            'brand_deals': brand_deal_estimate(vids_dict, params),
+            'creator_fund': creator_fund_estimate(vids_dict, params),
+            'affiliate': affiliate_estimate(vids_dict, params),
+            'merch': merch_estimate(vids_dict, params),
         }
     }
     return out

@@ -5,11 +5,18 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 
 from scrapers.utils_loader import load_videos_any
+try:
+    from ..models import Video
+except ImportError:  # pragma: no cover
+    from models import Video
 
-def posting_time_optimizer(username: str, tz: str = 'UTC', window_days: int = 60, videos_file: Optional[str] = None) -> Dict[str, Any]:
+def posting_time_optimizer(username: str, tz: str = 'UTC', window_days: int = 60, videos: Optional[List[Video]] = None, videos_file: Optional[str] = None) -> Dict[str, Any]:
     """Analyze optimal posting times based on video performance."""
     
-    videos = load_videos_any(videos_file) if videos_file else []
+    videos = videos or []
+    if not videos and videos_file:
+        videos = [Video.parse_obj(v) if not isinstance(v, Video) else v for v in load_videos_any(videos_file)]
+    videos = [v.dict() if isinstance(v, Video) else v for v in videos]
     
     if not videos:
         return {

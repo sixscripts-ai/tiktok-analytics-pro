@@ -5,20 +5,15 @@ Provides endpoints for the dashboard to trigger scraping and get real data
 """
 
 import json
-import os
-import sys
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 
-# Add current directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
-
-from profile_scraper import scrape_profile
-from video_data_extractor import run as extract_videos
-from earnings_calculator import run as calculate_earnings
-from engagement_analyzer import run as analyze_engagement
-from driver_loader import discover_driver_factory
+from tiktok_pipeline.scrapers.profile_scraper import scrape_profile
+from tiktok_pipeline.scrapers.video_data_extractor import run as extract_videos
+from tiktok_pipeline.analytics.earnings_calculator import run as calculate_earnings
+from tiktok_pipeline.analytics.engagement_analyzer import run as analyze_engagement
+from tiktok_pipeline.cli.driver_loader import discover_driver_factory
 
 class TikTokIntegrationAPI:
     """API for integrating TikTok scraping with the dashboard"""

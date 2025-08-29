@@ -15,14 +15,14 @@ def test_imports():
     print("🔍 Testing module imports...")
     
     modules = [
-        "profile_scraper",
-        "video_data_extractor", 
-        "earnings_calculator",
-        "engagement_analyzer",
-        "anti_detection_system",
-        "data_processor",
-        "driver_loader",
-        "integration_api"
+        "tiktok_pipeline.scrapers.profile_scraper",
+        "tiktok_pipeline.scrapers.video_data_extractor",
+        "tiktok_pipeline.analytics.earnings_calculator",
+        "tiktok_pipeline.analytics.engagement_analyzer",
+        "tiktok_pipeline.scrapers.anti_detection_system",
+        "tiktok_pipeline.analytics.data_processor",
+        "tiktok_pipeline.cli.driver_loader",
+        "tiktok_pipeline.analytics.integration_api"
     ]
     
     results = {}
@@ -40,9 +40,9 @@ def test_analytics_imports():
     print("📊 Testing analytics imports...")
     
     analytics_modules = [
-        "analytics.posting_time_optimizer",
-        "analytics.hashtag_efficacy", 
-        "analytics.sound_lifespan"
+        "tiktok_pipeline.analytics.posting_time_optimizer",
+        "tiktok_pipeline.analytics.hashtag_efficacy",
+        "tiktok_pipeline.analytics.sound_lifespan",
     ]
     
     results = {}
@@ -60,8 +60,8 @@ def test_scraper_imports():
     print("🕷️ Testing scraper imports...")
     
     scraper_modules = [
-        "scrapers.comments_scraper",
-        "scrapers.utils_loader"
+        "tiktok_pipeline.scrapers.comments_scraper",
+        "tiktok_pipeline.scrapers.utils_loader",
     ]
     
     results = {}
@@ -79,7 +79,7 @@ def test_cli_functionality():
     print("🖥️ Testing CLI functionality...")
     
     try:
-        from tiktok_cli import main
+        from tiktok_pipeline.cli.tiktok_cli import main
         results = {"tiktok_cli": "✅ SUCCESS"}
     except Exception as e:
         results = {"tiktok_cli": f"❌ FAILED: {str(e)}"}
@@ -91,7 +91,7 @@ def test_integration_api():
     print("🔗 Testing integration API...")
     
     try:
-        from integration_api import TikTokIntegrationAPI
+        from tiktok_pipeline.analytics.integration_api import TikTokIntegrationAPI
         api = TikTokIntegrationAPI()
         results = {"integration_api": "✅ SUCCESS"}
     except Exception as e:

@@ -1,13 +1,11 @@
 
-import sys, argparse, json
-from pathlib import Path
+import argparse, json
 
-# Add both the repo root and package root to sys.path for safer imports
-base_dir = Path(__file__).resolve().parents[1]
-pkg_dir = Path(__file__).resolve().parent
-for path in (base_dir, pkg_dir):
-    if str(path) not in sys.path:
-        sys.path.insert(0, str(path))
+from tiktok_pipeline.cli.driver_loader import discover_driver_factory
+from tiktok_pipeline.scrapers.comments_scraper import scrape_comments
+from tiktok_pipeline.analytics.posting_time_optimizer import posting_time_optimizer
+from tiktok_pipeline.analytics.hashtag_efficacy import hashtag_efficacy
+from tiktok_pipeline.analytics.sound_lifespan import sound_lifespan
 
 def _print(obj):
     print(json.dumps(obj, indent=2, default=str))
@@ -53,17 +51,6 @@ def main(argv=None):
     # ----- SCRAPE HANDLERS -----
     if args.cmd == "scrape":
         if args.kind == "comments":
-            try:
-                from tiktok_scraping_scripts.cli.driver_loader import discover_driver_factory
-            except Exception:
-                try:
-                    from cli.driver_loader import discover_driver_factory
-                except Exception:
-                    from driver_loader import discover_driver_factory
-            try:
-                from tiktok_scraping_scripts.scrapers.comments_scraper import scrape_comments
-            except Exception:
-                from scrapers.comments_scraper import scrape_comments
             driver_factory = None if args.no_driver else discover_driver_factory()
             return _print(scrape_comments(
                 username=args.username,
@@ -77,25 +64,26 @@ def main(argv=None):
     # ----- ANALYZE HANDLERS -----
     if args.cmd == "analyze":
         if args.kind == "posting_time_optimizer":
-            try:
-                from tiktok_scraping_scripts.analytics.posting_time_optimizer import posting_time_optimizer
-            except Exception:
-                from analytics.posting_time_optimizer import posting_time_optimizer
-            return _print(posting_time_optimizer(args.username, tz=args.tz, window_days=args.window, videos_file=args.videos_file))
+            return _print(posting_time_optimizer(
+                args.username,
+                tz=args.tz,
+                window_days=args.window,
+                videos_file=args.videos_file,
+            ))
 
         if args.kind == "hashtag_efficacy":
-            try:
-                from tiktok_scraping_scripts.analytics.hashtag_efficacy import hashtag_efficacy
-            except Exception:
-                from analytics.hashtag_efficacy import hashtag_efficacy
-            return _print(hashtag_efficacy(args.username, min_uses=args.min_uses, videos_file=args.videos_file))
+            return _print(hashtag_efficacy(
+                args.username,
+                min_uses=args.min_uses,
+                videos_file=args.videos_file,
+            ))
 
         if args.kind == "sound_lifespan":
-            try:
-                from tiktok_scraping_scripts.analytics.sound_lifespan import sound_lifespan
-            except Exception:
-                from analytics.sound_lifespan import sound_lifespan
-            return _print(sound_lifespan(args.sound_id, args.username, videos_file=args.videos_file))
+            return _print(sound_lifespan(
+                args.sound_id,
+                args.username,
+                videos_file=args.videos_file,
+            ))
 
     p.print_help()
 

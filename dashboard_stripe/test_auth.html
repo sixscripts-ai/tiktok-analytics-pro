@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; }
+        .success { color: green; }
+        .error { color: red; }
+        button { padding: 10px 20px; margin: 5px; }
+        input { padding: 8px; margin: 5px; width: 200px; }
+    </style>
+</head>
+<body>
+    <h1>Authentication System Test</h1>
+    
+    <div class="test-section">
+        <h2>Registration Test</h2>
+        <input type="text" id="reg-name" placeholder="Name" value="Test User">
+        <input type="email" id="reg-email" placeholder="Email" value="test2@example.com">
+        <input type="password" id="reg-password" placeholder="Password" value="password123">
+        <button onclick="testRegister()">Register</button>
+        <div id="register-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Login Test</h2>
+        <input type="email" id="login-email" placeholder="Email" value="test@example.com">
+        <input type="password" id="login-password" placeholder="Password" value="password123">
+        <button onclick="testLogin()">Login</button>
+        <div id="login-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Token Validation Test</h2>
+        <button onclick="testTokenValidation()">Validate Token</button>
+        <div id="token-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Dashboard Test</h2>
+        <button onclick="testDashboard()">Get Dashboard Data</button>
+        <div id="dashboard-result"></div>
+    </div>
+
+    <script>
+        let currentToken = null;
+        
+        async function testRegister() {
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                
+                const data = await response.json();
+                const resultDiv = document.getElementById('register-result');
+                
+                if (data.success) {
+                    currentToken = data.token;
+                    resultDiv.innerHTML = `<span class="success">✅ Registration successful! Token: ${data.token.substring(0, 50)}...</span>`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ Registration failed: ${data.message}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('register-result').innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function testLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                const resultDiv = document.getElementById('login-result');
+                
+                if (data.success) {
+                    currentToken = data.token;
+                    resultDiv.innerHTML = `<span class="success">✅ Login successful! Token: ${data.token.substring(0, 50)}...</span>`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ Login failed: ${data.message}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('login-result').innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function testTokenValidation() {
+            if (!currentToken) {
+                document.getElementById('token-result').innerHTML = `<span class="error">❌ No token available. Please login first.</span>`;
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/validate-token', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                });
+                
+                const data = await response.json();
+                const resultDiv = document.getElementById('token-result');
+                
+                if (data.valid) {
+                    resultDiv.innerHTML = `<span class="success">✅ Token valid! User: ${data.user.email}</span>`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ Token invalid</span>`;
+                }
+            } catch (error) {
+                document.getElementById('token-result').innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+        
+        async function testDashboard() {
+            if (!currentToken) {
+                document.getElementById('dashboard-result').innerHTML = `<span class="error">❌ No token available. Please login first.</span>`;
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/dashboard', {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                
+                const data = await response.json();
+                const resultDiv = document.getElementById('dashboard-result');
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `<span class="success">✅ Dashboard data loaded! Followers: ${data.stats.followers}</span>`;
+                } else {
+                    resultDiv.innerHTML = `<span class="error">❌ Dashboard failed</span>`;
+                }
+            } catch (error) {
+                document.getElementById('dashboard-result').innerHTML = `<span class="error">❌ Error: ${error.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>

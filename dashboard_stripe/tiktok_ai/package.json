@@ -1,0 +1,28 @@
+{
+  "name": "tiktok-ai-analytics",
+  "version": "1.0.0",
+  "description": "AI-powered TikTok Analytics integration",
+  "main": "ai_service.js",
+  "scripts": {
+    "start": "node ai_service.js",
+    "dev": "nodemon ai_service.js",
+    "test": "node test_ai.js"
+  },
+  "dependencies": {
+    "openai": "^4.20.1",
+    "langchain": "^0.0.208",
+    "@langchain/openai": "^0.0.14",
+    "natural": "^6.10.4",
+    "compromise": "^14.10.0",
+    "node-cron": "^3.0.3",
+    "axios": "^1.6.0",
+    "sqlite3": "^5.1.6",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["tiktok", "ai", "analytics", "openai", "langchain"],
+  "author": "Six Scripts Software LLC",
+  "license": "MIT"
+}

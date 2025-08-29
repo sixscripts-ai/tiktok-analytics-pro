@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Analytics Pro - Advanced Creator Intelligence Platform</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <div class="logo-icon">
+                    <i class="fab fa-tiktok"></i>
+                </div>
+                <span>TikTok Analytics Pro</span>
+            </div>
+            <div class="nav-menu">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#analytics" class="nav-link">Analytics</a>
+                <a href="#pricing" class="nav-link">Pricing</a>
+                <a href="#demo" class="nav-link">Demo</a>
+                <button class="btn-primary nav-cta" onclick="scrollToPricing()">
+                    <i class="fas fa-rocket"></i>
+                    Start Free Trial
+                </button>
+            </div>
+            <div class="nav-toggle" onclick="toggleMobileMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-background">
+            <div class="floating-elements">
+                <div class="floating-card" data-speed="0.5">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Analytics</span>
+                </div>
+                <div class="floating-card" data-speed="0.3">
+                    <i class="fas fa-dollar-sign"></i>
+                    <span>Earnings</span>
+                </div>
+                <div class="floating-card" data-speed="0.7">
+                    <i class="fas fa-users"></i>
+                    <span>Growth</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-star"></i>
+                    <span>Trusted by 10,000+ Creators</span>
+                </div>
+                <h1 class="hero-title">
+                    Unlock Your TikTok 
+                    <span class="gradient-text">Growth Potential</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Advanced AI-powered analytics platform that reveals your true earning potential, 
+                    predicts viral content, and optimizes your strategy for maximum growth and revenue.
+                </p>
+                <div class="hero-stats">
+                    <div class="stat-card">
+                        <div class="stat-number" data-target="15000">0</div>
+                        <div class="stat-label">Avg Monthly Earnings</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" data-target="50000">0</div>
+                        <div class="stat-label">Creators Analyzed</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" data-target="98">0</div>
+                        <div class="stat-label">Accuracy Rate %</div>
+                    </div>
+                </div>
+                <div class="hero-buttons">
+                    <button class="btn-primary btn-large" onclick="scrollToPricing()">
+                        <i class="fas fa-rocket"></i>
+                        Start Free Trial
+                        <span class="btn-glow"></span>
+                    </button>
+                    <button class="btn-secondary btn-large" onclick="openDemo()">
+                        <i class="fas fa-play"></i>
+                        Watch Demo
+                    </button>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="dashboard-preview">
+                    <div class="dashboard-header">
+                        <div class="dashboard-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <div class="dashboard-title">Analytics Dashboard</div>
+                    </div>
+                    <div class="dashboard-content">
+                        <div class="metric-card">
+                            <div class="metric-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="metric-info">
+                                <h3>Monthly Earnings</h3>
+                                <div class="metric-value">$15,420</div>
+                                <div class="metric-change positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    +34%
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="metric-info">
+                                <h3>Engagement Rate</h3>
+                                <div class="metric-value">5.2%</div>
+                                <div class="metric-change positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    +1.2%
+                                </div>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="metric-info">
+                                <h3>Follower Growth</h3>
+                                <div class="metric-value">+2.4K</div>
+                                <div class="metric-change positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    +18%
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <div class="chart-title">Growth Trend</div>
+                            <div class="chart-line">
+                                <div class="chart-point" style="left: 0%; height: 20%"></div>
+                                <div class="chart-point" style="left: 25%; height: 35%"></div>
+                                <div class="chart-point" style="left: 50%; height: 60%"></div>
+                                <div class="chart-point" style="left: 75%; height: 80%"></div>
+                                <div class="chart-point" style="left: 100%; height: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Advanced Analytics for Serious Creators</h2>
+                <p>Everything you need to maximize your TikTok earnings and accelerate growth</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card" data-aos="fade-up">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>AI-Powered Insights</h3>
+                    <p>Advanced machine learning algorithms analyze your content performance and predict viral potential with 98% accuracy.</p>
+                    <div class="feature-highlight">
+                        <i class="fas fa-check"></i>
+                        <span>Predict viral content before it happens</span>
+                    </div>
+                </div>
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h3>Earnings Optimization</h3>
+                    <p>Comprehensive revenue analysis across brand deals, Creator Fund, merchandise, and affiliate marketing opportunities.</p>
+                    <div class="feature-highlight">
+                        <i class="fas fa-check"></i>
+                        <span>Maximize revenue from every source</span>
+                    </div>
+                </div>
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="feature-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h3>Real-Time Monitoring</h3>
+                    <p>Track your performance in real-time with automated alerts and instant notifications for optimal posting times.</p>
+                    <div class="feature-highlight">
+                        <i class="fas fa-check"></i>
+                        <span>Never miss your peak engagement window</span>
+                    </div>
+                </div>
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
+                    <div class="feature-icon">
+                        <i class="fas fa-target"></i>
+                    </div>
+                    <h3>Competitor Analysis</h3>
+                    <p>Benchmark your performance against competitors and identify untapped opportunities in your niche.</p>
+                    <div class="feature-highlight">
+                        <i class="fas fa-check"></i>
+                        <span>Stay ahead of the competition</span>
+                    </div>
+                </div>
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="400">
+                    <div class="feature-icon">
+                        <i class="fas fa-magic"></i>
+                    </div>
+                    <h3>Content Optimization</h3>
+                    <p>AI-driven recommendations for hashtags, posting times, and content strategies to boost engagement.</p>
+                    <div class="feature-highlight">
+                        <i class="fas fa-check"></i>
+                        <span>Optimize every piece of content</span>
+                    </div>
+                </div>
+                <div class="feature-card" data-aos="fade-up" data-aos-delay="500">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Advanced Security</h3>
+                    <p>Enterprise-grade security with proxy rotation, anti-detection systems, and compliance with TikTok's terms of service.</p>
+                    <div class="feature-highlight">
+                        <i class="fas fa-check"></i>
+                        <span>Safe and compliant data collection</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Analytics Section -->
+    <section id="analytics" class="analytics">
+        <div class="container">
+            <div class="analytics-content">
+                <div class="analytics-text">
+                    <h2>Powerful Analytics Engine</h2>
+                    <p>Our advanced scraping and analysis tools provide deep insights that drive real results.</p>
+                    <div class="analytics-features">
+                        <div class="analytics-feature">
+                            <div class="feature-number">01</div>
+                            <div class="feature-content">
+                                <h4>Profile Intelligence</h4>
+                                <p>Comprehensive creator profiling with engagement analysis and growth predictions</p>
+                            </div>
+                        </div>
+                        <div class="analytics-feature">
+                            <div class="feature-number">02</div>
+                            <div class="feature-content">
+                                <h4>Content Performance</h4>
+                                <p>Deep video analysis with viral prediction algorithms and optimization recommendations</p>
+                            </div>
+                        </div>
+                        <div class="analytics-feature">
+                            <div class="feature-number">03</div>
+                            <div class="feature-content">
+                                <h4>Revenue Forecasting</h4>
+                                <p>Accurate earnings predictions using multiple revenue models and market data</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="analytics-visual">
+                    <div class="analytics-dashboard">
+                        <div class="dashboard-tabs">
+                            <div class="tab active">Overview</div>
+                            <div class="tab">Earnings</div>
+                            <div class="tab">Growth</div>
+                        </div>
+                        <div class="dashboard-metrics">
+                            <div class="metric-row">
+                                <div class="metric-label">Follower Growth</div>
+                                <div class="metric-bar">
+                                    <div class="bar-fill" style="width: 85%"></div>
+                                </div>
+                                <div class="metric-value">+2.4K</div>
+                            </div>
+                            <div class="metric-row">
+                                <div class="metric-label">Engagement Rate</div>
+                                <div class="metric-bar">
+                                    <div class="bar-fill" style="width: 72%"></div>
+                                </div>
+                                <div class="metric-value">5.2%</div>
+                            </div>
+                            <div class="metric-row">
+                                <div class="metric-label">Revenue Growth</div>
+                                <div class="metric-bar">
+                                    <div class="bar-fill" style="width: 94%"></div>
+                                </div>
+                                <div class="metric-value">+34%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing">
+        <div class="container">
+            <div class="section-header">
+                <h2>Choose Your Growth Plan</h2>
+                <p>Start free and scale as you grow your creator business</p>
+            </div>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3>Creator</h3>
+                        <div class="price">
+                            <span class="currency">$</span>
+                            <span class="amount">97</span>
+                            <span class="period">/month</span>
+                        </div>
+                        <p class="pricing-description">For growing creators</p>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> Advanced analytics dashboard</li>
+                        <li><i class="fas fa-check"></i> Up to 3 accounts</li>
+                        <li><i class="fas fa-check"></i> Real-time earnings tracking</li>
+                        <li><i class="fas fa-check"></i> Viral content prediction</li>
+                        <li><i class="fas fa-check"></i> Optimal posting times</li>
+                        <li><i class="fas fa-check"></i> Email support</li>
+                    </ul>
+                    <button class="btn-primary" onclick="selectPlan('creator')">Start Plan</button>
+                </div>
+                <div class="pricing-card featured">
+                    <div class="pricing-badge">Most Popular</div>
+                    <div class="pricing-header">
+                        <h3>Pro</h3>
+                        <div class="price">
+                            <span class="currency">$</span>
+                            <span class="amount">197</span>
+                            <span class="period">/month</span>
+                        </div>
+                        <p class="pricing-description">For serious content creators</p>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> Everything in Creator +</li>
+                        <li><i class="fas fa-check"></i> Up to 8 accounts</li>
+                        <li><i class="fas fa-check"></i> AI-powered content optimization</li>
+                        <li><i class="fas fa-check"></i> Competitor analysis & benchmarking</li>
+                        <li><i class="fas fa-check"></i> Brand deal valuation</li>
+                        <li><i class="fas fa-check"></i> Priority support (12h response)</li>
+                        <li><i class="fas fa-check"></i> Custom reports & exports</li>
+                    </ul>
+                    <button class="btn-primary" onclick="selectPlan('pro')">Start Plan</button>
+                </div>
+                <div class="pricing-card">
+                    <div class="pricing-header">
+                        <h3>Agency</h3>
+                        <div class="price">
+                            <span class="currency">$</span>
+                            <span class="amount">397</span>
+                            <span class="period">/month</span>
+                        </div>
+                        <p class="pricing-description">For agencies & power users</p>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> Everything in Pro +</li>
+                        <li><i class="fas fa-check"></i> Up to 15 accounts</li>
+                        <li><i class="fas fa-check"></i> White-label reports</li>
+                        <li><i class="fas fa-check"></i> API access & webhooks</li>
+                        <li><i class="fas fa-check"></i> Dedicated support (4h response)</li>
+                        <li><i class="fas fa-check"></i> Custom integrations</li>
+                    </ul>
+                    <button class="btn-primary" onclick="selectPlan('agency')">Start Plan</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Free Trial Section -->
+    <section class="free-trial">
+        <div class="container">
+            <div class="trial-content">
+                <div class="trial-header">
+                    <h2>Try Before You Buy</h2>
+                    <p>Experience the full power of TikTok Analytics Pro with our 3-day free trial</p>
+                </div>
+                <div class="trial-card-wide">
+                    <div class="trial-card-content">
+                        <div class="trial-info">
+                            <h3>3-Day Free Trial</h3>
+                            <div class="trial-price-large">
+                                <span class="currency">$</span>
+                                <span class="amount">0</span>
+                                <span class="period">/3 days</span>
+                            </div>
+                            <p class="trial-description">Full Pro plan access with no credit card required</p>
+                        </div>
+                        <div class="trial-features">
+                            <div class="trial-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Full Pro plan access</span>
+                            </div>
+                            <div class="trial-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Up to 3 accounts</span>
+                            </div>
+                            <div class="trial-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>All analytics features</span>
+                            </div>
+                            <div class="trial-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>AI-powered insights</span>
+                            </div>
+                            <div class="trial-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>No credit card required</span>
+                            </div>
+                            <div class="trial-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Cancel anytime</span>
+                            </div>
+                        </div>
+                        <button class="btn-primary btn-large" onclick="startFreeTrial()">
+                            <i class="fas fa-rocket"></i>
+                            Start Free Trial
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="demo" class="demo">
+        <div class="container">
+            <div class="demo-content">
+                <div class="demo-text">
+                    <h2>See the Power in Action</h2>
+                    <p>Watch how TikTok Analytics Pro transforms creator businesses and accelerates growth with data-driven insights.</p>
+                    <div class="demo-highlights">
+                        <div class="demo-highlight">
+                            <i class="fas fa-play-circle"></i>
+                            <span>3-minute platform overview</span>
+                        </div>
+                        <div class="demo-highlight">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Live dashboard demonstration</span>
+                        </div>
+                        <div class="demo-highlight">
+                            <i class="fas fa-users"></i>
+                            <span>Real creator success stories</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="demo-video">
+                    <div class="video-container" onclick="openDemo()">
+                        <div class="video-overlay">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <div class="video-placeholder"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <h2>Trusted by Top Creators</h2>
+                <p>See what our users are saying about their results</p>
+            </div>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <div class="quote-icon">
+                            <i class="fas fa-quote-left"></i>
+                        </div>
+                        <p>"TikTok Analytics Pro helped me increase my monthly earnings from $3K to $25K in just 4 months! The AI predictions are incredibly accurate."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">@</div>
+                        <div class="author-info">
+                            <h4>@tiktokcreator</h4>
+                            <span>3.2M followers</span>
+                            <div class="author-stats">
+                                <span>+733% earnings growth</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <div class="quote-icon">
+                            <i class="fas fa-quote-left"></i>
+                        </div>
+                        <p>"The competitor analysis feature alone paid for itself 20x over. I discovered untapped opportunities that doubled my engagement rate."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">@</div>
+                        <div class="author-info">
+                            <h4>@contentpro</h4>
+                            <span>2.1M followers</span>
+                            <div class="author-stats">
+                                <span>+100% engagement boost</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <div class="quote-icon">
+                            <i class="fas fa-quote-left"></i>
+                        </div>
+                        <p>"Finally, a tool that gives me real insights into my earnings potential. The viral prediction feature is a game-changer for content strategy."</p>
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">@</div>
+                        <div class="author-info">
+                            <h4>@viralstar</h4>
+                            <span>4.8M followers</span>
+                            <div class="author-stats">
+                                <span>+150% viral content rate</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Accelerate Your Growth?</h2>
+                <p>Join thousands of creators who are already earning more with TikTok Analytics Pro</p>
+                <button class="btn-primary btn-large" onclick="scrollToPricing()">
+                    <i class="fas fa-rocket"></i>
+                    Start Your Free Trial
+                    <span class="btn-glow"></span>
+                </button>
+                <p class="cta-note">No credit card required • 3-day free trial • Cancel anytime</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <div class="logo-icon">
+                            <i class="fab fa-tiktok"></i>
+                        </div>
+                        <span>TikTok Analytics Pro</span>
+                    </div>
+                    <p>Advanced analytics platform for TikTok creators to maximize earnings and accelerate growth with AI-powered insights.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#analytics">Analytics</a></li>
+                        <li><a href="#pricing">Pricing</a></li>
+                        <li><a href="#demo">Demo</a></li>
+                        <li><a href="#">API</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Status</a></li>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">Community</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Blog</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Privacy</a></li>
+                        <li><a href="#">Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 TikTok Analytics Pro. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Complete Your Purchase</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="plan-summary">
+                    <h4 id="selectedPlanName">Pro Plan</h4>
+                    <div class="plan-price">$197/month</div>
+                    <ul id="selectedPlanFeatures">
+                        <li>Everything in Creator +</li>
+                        <li>Up to 15 accounts</li>
+                        <li>AI-powered content optimization</li>
+                        <li>Competitor analysis & benchmarking</li>
+                        <li>Brand deal valuation</li>
+                        <li>Priority support (12h response)</li>
+                        <li>Custom reports & exports</li>
+                    </ul>
+                </div>
+                <form id="payment-form">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tiktok-username">TikTok Username</label>
+                        <input type="text" id="tiktok-username" placeholder="@yourusername" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="card-element">Credit Card</label>
+                        <div id="card-element"></div>
+                        <div id="card-errors" class="error-message"></div>
+                    </div>
+                    <button type="submit" class="btn-primary btn-full">
+                        <i class="fas fa-lock"></i>
+                        Start Free Trial
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

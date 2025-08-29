@@ -5,18 +5,32 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 
 from scrapers.utils_loader import load_videos_any
+# {{ import ValidationError for flexible Video parsing }}
+from pydantic import ValidationError
 try:
     from ..models import Video
 except ImportError:  # pragma: no cover
     from models import Video
+# }}
 
 def sound_lifespan(sound_id: Optional[str] = None, username: Optional[str] = None, videos: Optional[List[Video]] = None, videos_file: Optional[str] = None) -> Dict[str, Any]:
     """Analyze sound/music lifespan and popularity trends."""
     
+    # {{ load videos gracefully even if missing required fields }}
     videos = videos or []
     if not videos and videos_file:
-        videos = [Video.parse_obj(v) if not isinstance(v, Video) else v for v in load_videos_any(videos_file)]
+        raw_videos = load_videos_any(videos_file)
+        videos = []
+        for v in raw_videos:
+            if isinstance(v, Video):
+                videos.append(v)
+            else:
+                try:
+                    videos.append(Video.model_validate(v))
+                except ValidationError:
+                    videos.append(v)
     videos = [v.dict() if isinstance(v, Video) else v for v in videos]
+    # }}
     
     if not videos:
         return {

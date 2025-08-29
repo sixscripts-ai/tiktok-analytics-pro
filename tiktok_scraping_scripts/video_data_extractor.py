@@ -2,7 +2,10 @@
 from __future__ import annotations
 from dataclasses import dataclass, asdict
 from typing import List, Optional, Dict, Any, Callable
-import time, random, json
+import asyncio, time, random, json, re
+
+from async_pipeline import AsyncPipeline, TaskQueue
+from pathlib import Path
 
 from scrapers.utils_loader import load_videos_any
 
@@ -13,6 +16,8 @@ try:
     from selenium.common.exceptions import TimeoutException, WebDriverException
 except Exception:
     By = WebDriverWait = EC = TimeoutException = WebDriverException = None
+
+_SIGI_RE = re.compile(r"<script id=\"SIGI_STATE\"[^>]*>(.*?)</script>", re.S)
 
 @dataclass
 class VideoRow:
@@ -28,6 +33,33 @@ class VideoRow:
     music: Dict[str, Any]|None = None
     caption: str|None = None
 
+async def _async_fetch_videos(username: str, limit: int, pipeline: AsyncPipeline) -> List[Dict[str, Any]]:
+    url = f"https://www.tiktok.com/@{username}"
+    html = await pipeline.fetch(url)
+    m = _SIGI_RE.search(html)
+    if not m:
+        return []
+    data = json.loads(m.group(1))
+    ids = data.get("ItemList", {}).get("user-post", {}).get("list", [])[:limit]
+    items = data.get("ItemModule", {})
+    out: List[Dict[str, Any]] = []
+    for vid in ids:
+        meta = items.get(vid, {})
+        stats = meta.get("stats", {})
+        out.append({
+            "url": f"https://www.tiktok.com/@{username}/video/{vid}",
+            "video_id": vid,
+            "create_time": meta.get("createTime"),
+            "views": stats.get("playCount"),
+            "likes": stats.get("diggCount"),
+            "comments": stats.get("commentCount"),
+            "shares": stats.get("shareCount"),
+            "duration": meta.get("video", {}).get("duration"),
+            "hashtags": [f"#{t}" for t in meta.get("hashtags", [])],
+            "music": meta.get("music"),
+            "caption": meta.get("desc"),
+        })
+    return out
 def _parse_overlay_count(text: str|None) -> Optional[int]:
     if not text: return None
     t = (text or '').strip().lower().replace(',', '')
@@ -264,7 +296,24 @@ def _hydrate_video_meta(driver, row: VideoRow, per_video_timeout: int = 15) -> V
     return row
 
 def run(username: str, limit: int = 200, incremental: bool = True, include_comments: bool = False,
-        driver=None, driver_factory: Optional[Callable[[], Any]] = None, out: Optional[str]=None) -> List[Dict[str, Any]]:
+        driver=None, driver_factory: Optional[Callable[[], Any]] = None, out: Optional[str]=None, pipeline: Optional[AsyncPipeline] = None) -> List[Dict[str, Any]]:
+    if pipeline is not None:
+        async def _run() -> List[Dict[str, Any]]:
+            if pipeline.session is None:
+                async with pipeline:
+                    return await _async_fetch_videos(username, limit, pipeline)
+            return await _async_fetch_videos(username, limit, pipeline)
+        results = asyncio.run(_run())
+        if out:
+            p = Path(out)
+            if p.suffix.lower() == '.jsonl':
+                with p.open('w', encoding='utf-8') as f:
+                    for row in results:
+                        f.write(json.dumps(row, ensure_ascii=False) + "\n")
+            else:
+                p.write_text(json.dumps(results, indent=2, ensure_ascii=False), encoding='utf-8')
+        return results
+
     if driver is None and driver_factory is None:
         try:
             import undetected_chromedriver as uc
@@ -279,7 +328,7 @@ def run(username: str, limit: int = 200, incremental: bool = True, include_comme
         _scroll_grid(driver, max_items=limit, max_secs=30)
         rows = _collect_from_grid(driver, limit=limit)
         results: List[Dict[str, Any]] = []
-        
+
         # Only hydrate if we found videos
         if rows:
             for r in rows:
@@ -292,7 +341,7 @@ def run(username: str, limit: int = 200, incremental: bool = True, include_comme
                     results.append(asdict(r))
         else:
             pass
-            
+
     except Exception as e:
         results = []
     finally:

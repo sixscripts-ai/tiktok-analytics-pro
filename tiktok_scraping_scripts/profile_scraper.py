@@ -2,7 +2,9 @@
 from __future__ import annotations
 from dataclasses import dataclass, asdict
 from typing import List, Optional, Dict, Any, Callable
-import time, random, re, json
+import asyncio, time, random, re, json
+
+from async_pipeline import AsyncPipeline, TaskQueue
 
 try:
     from selenium.webdriver.common.by import By
@@ -15,6 +17,7 @@ except Exception:
 # --- Helpers ---
 
 _NUMBER_RE = re.compile(r"^\s*([0-9]+(?:\.[0-9]+)?)\s*([kmbKMB])?\s*$")
+_SIGI_RE = re.compile(r"<script id=\"SIGI_STATE\"[^>]*>(.*?)</script>", re.S)
 def parse_count(text: str|None) -> Optional[int]:
     if not text:
         return None
@@ -57,6 +60,30 @@ class Profile:
     profile_url: Optional[str] = None
     created_at: Optional[str] = None  # TikTok doesn't expose this on web; kept for schema parity
 
+# --- Async helpers ---
+
+async def _async_scrape_profile(username: str, pipeline: AsyncPipeline) -> Dict[str, Any]:
+    url = f"https://www.tiktok.com/@{username}"
+    html = await pipeline.fetch(url)
+    m = _SIGI_RE.search(html)
+    if not m:
+        return {"profile": {"username": username, "profile_url": url}}
+    data = json.loads(m.group(1))
+    user = data.get("UserModule", {}).get("users", {}).get(username, {})
+    stats = data.get("UserModule", {}).get("stats", {}).get(username, {})
+    prof = Profile(
+        username=username,
+        display_name=user.get("nickname"),
+        bio=user.get("signature"),
+        follower_count=stats.get("followerCount"),
+        following_count=stats.get("followingCount"),
+        total_likes=stats.get("heartCount"),
+        video_count=stats.get("videoCount"),
+        verified=user.get("verified"),
+        profile_url=url,
+        created_at=None,
+    )
+    return {"profile": asdict(prof)}
 # --- Core ---
 
 def _open_profile(driver, username: str):
@@ -85,7 +112,15 @@ def _try_many(driver, selectors, timeout=10):
     if last: raise last
     raise TimeoutException("element not found")  # type: ignore
 
-def scrape_profile(username: str, driver=None, driver_factory: Optional[Callable[[], Any]] = None) -> Dict[str, Any]:
+def scrape_profile(username: str, driver=None, driver_factory: Optional[Callable[[], Any]] = None, pipeline: Optional[AsyncPipeline] = None) -> Dict[str, Any]:
+    if pipeline is not None:
+        async def _run() -> Dict[str, Any]:
+            if pipeline.session is None:
+                async with pipeline:
+                    return await _async_scrape_profile(username, pipeline)
+            return await _async_scrape_profile(username, pipeline)
+        return asyncio.run(_run())
+
     if driver is None and driver_factory is None:
         try:
             import undetected_chromedriver as uc
@@ -174,7 +209,21 @@ def scrape_profile(username: str, driver=None, driver_factory: Optional[Callable
     )
     return {"profile": asdict(prof)}
 
-def run(usernames: List[str], driver_factory: Optional[Callable[[], Any]] = None) -> List[Dict[str, Any]]:
+def run(usernames: List[str], driver_factory: Optional[Callable[[], Any]] = None, pipeline: Optional[AsyncPipeline] = None, concurrency: int = 5) -> List[Dict[str, Any]]:
+    if pipeline is not None:
+        async def _run() -> List[Dict[str, Any]]:
+            if pipeline.session is None:
+                async with pipeline:
+                    q = TaskQueue(workers=concurrency)
+                    for u in usernames:
+                        await q.add_task(lambda u=u: _async_scrape_profile(u, pipeline))
+                    return await q.run()
+            q = TaskQueue(workers=concurrency)
+            for u in usernames:
+                await q.add_task(lambda u=u: _async_scrape_profile(u, pipeline))
+            return await q.run()
+        return asyncio.run(_run())
+
     out = []
     driver = None
     if driver_factory is None:

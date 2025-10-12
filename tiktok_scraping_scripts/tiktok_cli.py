@@ -17,6 +17,7 @@ def _print(obj):
 
 def main(argv=None):
     p = argparse.ArgumentParser(prog="tiktokctl")
+    p.add_argument("--async", action="store_true", help="Enable async pipeline for faster processing")
     sub = p.add_subparsers(dest="cmd")
 
     # --- SCRAPE ---
@@ -47,11 +48,31 @@ def main(argv=None):
 
     # --- ANALYZE ---
     an = sub.add_parser("analyze", help="Run analytics over scraped data")
-    # {{ analyze args }}
+    an_sub = an.add_subparsers(dest="kind")
+    
+    # {{ comprehensive analytics via pipeline }}
     an.add_argument("--username", required=True)
     an.add_argument("--videos-file", default=None)
     an.add_argument("--tz", default="UTC")
     an.add_argument("--window", type=int, default=60)
+    # }}
+
+    # {{ individual analytics commands from async pipeline branch }}
+    sp_pto = an_sub.add_parser("posting_time_optimizer", help="Compute best posting time windows from videos")
+    sp_pto.add_argument("--username", required=True)
+    sp_pto.add_argument("--tz", default="UTC")
+    sp_pto.add_argument("--window", type=int, default=60)
+    sp_pto.add_argument("--videos-file", default=None)
+
+    sp_hash = an_sub.add_parser("hashtag_efficacy", help="Compute hashtag lift vs baseline")
+    sp_hash.add_argument("--username", required=True)
+    sp_hash.add_argument("--min-uses", type=int, default=5)
+    sp_hash.add_argument("--videos-file", default=None)
+
+    sp_sound = an_sub.add_parser("sound_lifespan", help="Estimate sound half-life from usage")
+    sp_sound.add_argument("--sound-id", default=None)
+    sp_sound.add_argument("--username", default=None)
+    sp_sound.add_argument("--videos-file", default=None)
     # }}
 
     # {{ persist command }}
@@ -74,7 +95,7 @@ def main(argv=None):
                 except Exception:
                     from driver_loader import discover_driver_factory
             driver_factory = None if args.no_driver else discover_driver_factory()
-            pipeline = TikTokPipeline(driver_factory=driver_factory)
+            pipeline = TikTokPipeline(driver_factory=driver_factory, enable_async=getattr(args, 'async', False))
             if args.kind == "profile":
                 return _print(pipeline.scrape_profile(args.username))
             if args.kind == "videos":
@@ -103,13 +124,35 @@ def main(argv=None):
 
     # ----- ANALYZE HANDLERS -----
     if args.cmd == "analyze":
-        pipeline = TikTokPipeline()
+        if args.kind == "posting_time_optimizer":
+            try:
+                from tiktok_scraping_scripts.analytics.posting_time_optimizer import posting_time_optimizer
+            except Exception:
+                from analytics.posting_time_optimizer import posting_time_optimizer
+            return _print(posting_time_optimizer(args.username, tz=args.tz, window_days=args.window, videos_file=args.videos_file))
+
+        if args.kind == "hashtag_efficacy":
+            try:
+                from tiktok_scraping_scripts.analytics.hashtag_efficacy import hashtag_efficacy
+            except Exception:
+                from analytics.hashtag_efficacy import hashtag_efficacy
+            return _print(hashtag_efficacy(args.username, min_uses=args.min_uses, videos_file=args.videos_file))
+
+        if args.kind == "sound_lifespan":
+            try:
+                from tiktok_scraping_scripts.analytics.sound_lifespan import sound_lifespan
+            except Exception:
+                from analytics.sound_lifespan import sound_lifespan
+            return _print(sound_lifespan(args.sound_id, args.username, videos_file=args.videos_file))
+
+        # Default comprehensive analytics via pipeline
+        pipeline = TikTokPipeline(enable_async=getattr(args, 'async', False))
         return _print(pipeline.run_analytics(args.username, videos_file=args.videos_file, tz=args.tz, window_days=args.window))
 
     # ----- PERSIST HANDLER -----
     if args.cmd == "persist":
         from scrapers.utils_loader import load_videos_any
-        pipeline = TikTokPipeline()
+        pipeline = TikTokPipeline(enable_async=getattr(args, 'async', False))
         pipeline.video_data = load_videos_any(args.input)
         pipeline.persist_results(args.output, fmt=args.format)
         return _print({"output": args.output})
